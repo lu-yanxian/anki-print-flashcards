@@ -1,0 +1,13 @@
+# Build output
+dist/
+
+# Created by `python build.py --dev`; the source of truth is web/index.html
+addon/flashcards_template.html
+
+# Per-user state written by the add-on at runtime
+addon/user_files/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/

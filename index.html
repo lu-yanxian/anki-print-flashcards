@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Print &amp; Cut Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Serif:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Serif+SC:wght@400;600&family=Noto+Serif+TC:wght@400;600&family=Noto+Serif+Tibetan:wght@400;600&family=Noto+Sans+Tibetan&family=Noto+Serif+Hebrew:wght@400;600&family=Noto+Serif+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1F2A3C;
+    --ink-soft: #4B5768;
+    --paper: #E9E7DF;
+    --panel: #FCFBF7;
+    --pine: #3F6659;
+    --border: #D6D2C4;
+    --danger: #A8433C;
+    --warnbg: #F6EDD9;
+    --font-head: 'Newsreader', Georgia, serif;
+    --font-ui: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    --font-card: 'Noto Serif', 'Noto Serif SC', 'Noto Serif TC', 'Noto Serif Tibetan', 'Noto Sans Tibetan', 'Microsoft Himalaya', 'Kailasa', 'Jomolhari', 'Noto Serif Hebrew', 'Noto Serif Devanagari', 'Noto Sans', 'SimSun', 'Songti SC', Georgia, serif;
+    --guide-color: #9a9a9a;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --ink: #EDE9DE; --ink-soft: #B9B2A0; --paper: #201E1A;
+      --panel: #2A2823; --pine: #7BAE9C; --border: #45423A;
+      --danger: #E08C84; --warnbg: #3A3122;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #EDE9DE; --ink-soft: #B9B2A0; --paper: #201E1A;
+    --panel: #2A2823; --pine: #7BAE9C; --border: #45423A;
+    --danger: #E08C84; --warnbg: #3A3122;
+  }
+
+  * { box-sizing: border-box; }
+  html { height: 100%; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: var(--font-ui);
+  }
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+
+  header.app-head { padding: 26px clamp(16px, 4vw, 48px) 16px; border-bottom: 1px solid var(--border); }
+  header.app-head h1 {
+    font-family: var(--font-head); font-weight: 500;
+    font-size: clamp(23px, 3.2vw, 31px); margin: 0 0 4px;
+  }
+  header.app-head p {
+    margin: 0; color: var(--ink-soft); font-size: 14.5px;
+    max-width: 66ch; line-height: 1.5;
+  }
+
+  .layout { display: grid; grid-template-columns: 360px 1fr; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .controls {
+    padding: 22px clamp(16px, 3vw, 26px) 40px;
+    border-right: 1px solid var(--border);
+    position: sticky; top: 0; max-height: 100vh; overflow-y: auto;
+  }
+  @media (max-width: 900px) {
+    .controls { position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  .step {
+    font-family: var(--font-head);
+    font-size: 16px; font-weight: 500;
+    margin: 26px 0 12px; padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:first-of-type { margin-top: 0; }
+
+  .field { margin-bottom: 15px; }
+  .field > label.title, .sublabel {
+    display: block; font-size: 12.5px; font-weight: 600;
+    color: var(--ink); margin-bottom: 5px;
+  }
+  .hint { font-size: 12px; color: var(--ink-soft); margin-top: 5px; line-height: 1.45; }
+  .hint code {
+    font-family: ui-monospace, Menlo, monospace; font-size: 11.5px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 2px; padding: 0 3px;
+  }
+
+  textarea, select, input[type=number], input[type=text] {
+    width: 100%; font-family: var(--font-ui); font-size: 13px;
+    color: var(--ink); background: var(--panel);
+    border: 1px solid var(--border); border-radius: 3px; padding: 7px 9px;
+  }
+  textarea {
+    min-height: 130px; resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; line-height: 1.5; white-space: pre; overflow-wrap: normal; overflow-x: auto;
+  }
+  textarea:focus, select:focus, input:focus { outline: 2px solid var(--pine); outline-offset: 1px; }
+
+  .row { display: flex; gap: 9px; }
+  .row > div { flex: 1; min-width: 0; }
+
+  .check { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; margin-bottom: 8px; cursor: pointer; line-height: 1.4; }
+  .check input { margin-top: 2px; flex: none; }
+
+  .radio-group label { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; margin-bottom: 9px; cursor: pointer; line-height: 1.4; }
+  .radio-group input { margin-top: 3px; flex: none; }
+  .radio-group .opt-label { font-weight: 600; }
+  .radio-group .opt-desc { display: block; color: var(--ink-soft); font-size: 11.5px; margin-top: 1px; }
+
+  .corner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  button {
+    font-family: var(--font-ui); font-weight: 600; font-size: 13.5px;
+    border-radius: 3px; padding: 10px 16px; cursor: pointer;
+    border: 1px solid transparent; width: 100%;
+  }
+  button.primary { background: var(--ink); color: var(--paper); margin-bottom: 9px; }
+  button.secondary { background: var(--pine); color: #fff; }
+  button:active { transform: translateY(1px); }
+  .btn-stack { margin-top: 20px; }
+
+  .preview-wrap { padding: 22px clamp(16px, 3vw, 26px) 60px; }
+
+  .stats-bar {
+    padding: 11px 14px; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 4px;
+    font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; line-height: 1.6;
+  }
+  .stats-bar strong { color: var(--ink); font-weight: 600; }
+  .notice {
+    padding: 9px 13px; border-radius: 4px; font-size: 12.5px;
+    margin-bottom: 8px; line-height: 1.5;
+    background: var(--warnbg); border: 1px solid var(--border); color: var(--ink);
+  }
+  .notice.bad { color: var(--danger); font-weight: 500; }
+
+  .empty-state {
+    border: 1px dashed var(--border); border-radius: 6px;
+    padding: 44px 24px; text-align: center; color: var(--ink-soft); font-size: 14px;
+  }
+
+  .page-label { font-size: 12px; color: var(--ink-soft); margin: 24px 0 6px; font-weight: 600; }
+  .page-label:first-of-type { margin-top: 0; }
+
+  .page {
+    background: #fff; display: grid;
+    width: 100%; max-width: 470px; margin: 0 0 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+    border-top: 1px solid var(--guide-color);
+    border-left: 1px solid var(--guide-color);
+  }
+  .page.guides-dashed { --guide-style: dashed; --guide-color: #9a9a9a; }
+  .page.guides-hairline { --guide-style: solid; --guide-color: #c4c4c4; }
+  .page.guides-none { --guide-style: solid; --guide-color: transparent; }
+  .page { border-top-style: var(--guide-style, dashed); border-left-style: var(--guide-style, dashed); }
+
+  .card-cell {
+    position: relative;
+    border-right: 1px var(--guide-style, dashed) var(--guide-color);
+    border-bottom: 1px var(--guide-style, dashed) var(--guide-color);
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: var(--cell-pad, 5px);
+    overflow: hidden; color: #1a1a1a;
+  }
+  .card-content {
+    font-family: var(--card-font, var(--font-card));
+    font-size: var(--size, 12px);
+    line-height: var(--lh, 1.35);
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .card-content img { max-width: 100%; max-height: 100%; }
+  .card-cell.blank { border-color: var(--guide-color); opacity: 0.4; }
+
+  .corner-label {
+    position: absolute; font-family: var(--font-ui);
+    font-size: var(--corner-size, 6px); line-height: 1; color: #8a8a8a;
+    max-width: 44%; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; pointer-events: none;
+  }
+  .corner-label.tl { top: 3px; left: 4px; }
+  .corner-label.tr { top: 3px; right: 4px; }
+  .corner-label.bl { bottom: 3px; left: 4px; }
+  .corner-label.br { bottom: 3px; right: 4px; }
+
+  /* ---- card list / per-card labels ---- */
+  .cardlist-wrap {
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--panel); margin-bottom: 14px;
+  }
+  .cardlist-wrap > summary {
+    cursor: pointer; padding: 10px 14px; font-size: 13px; font-weight: 600;
+    list-style: none; display: flex; justify-content: space-between; gap: 10px; align-items: center;
+  }
+  .cardlist-wrap > summary::-webkit-details-marker { display: none; }
+  .cardlist-wrap > summary::after { content: '▾'; color: var(--ink-soft); font-size: 11px; }
+  .cardlist-wrap[open] > summary::after { content: '▴'; }
+  .cardlist-wrap > summary .selcount { font-weight: 400; color: var(--ink-soft); font-size: 12px; }
+  .cardlist-body { padding: 0 14px 14px; border-top: 1px solid var(--border); }
+
+  .sel-toolbar { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin: 12px 0 10px; }
+  .sel-toolbar input[type=text] { flex: 1 1 170px; width: auto; }
+  .sel-toolbar button {
+    width: auto; flex: none; padding: 6px 10px; font-size: 12px; font-weight: 500;
+    background: transparent; color: var(--ink); border: 1px solid var(--border);
+  }
+  .sel-toolbar button:hover { border-color: var(--pine); color: var(--pine); }
+
+  .apply-bar {
+    display: flex; flex-wrap: wrap; gap: 7px; align-items: center;
+    padding: 10px; margin-bottom: 10px;
+    border: 1px solid var(--border); border-radius: 3px;
+    background: var(--paper);
+  }
+  .apply-bar select { width: auto; flex: none; }
+  .apply-bar input[type=text] { flex: 1 1 160px; width: auto; }
+  .apply-bar button { width: auto; flex: none; padding: 7px 12px; font-size: 12.5px; }
+  .apply-bar button.apply { background: var(--pine); color: #fff; }
+  .apply-bar button.clear { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+
+  .cardlist {
+    max-height: 340px; overflow-y: auto;
+    border: 1px solid var(--border); border-radius: 3px; background: var(--panel);
+  }
+  .cl-row {
+    display: grid; grid-template-columns: 26px 34px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 9em);
+    gap: 8px; align-items: center;
+    padding: 5px 8px; border-bottom: 1px solid var(--border);
+    font-size: 12.5px; cursor: pointer;
+  }
+  .cl-row:last-child { border-bottom: none; }
+  .cl-row:hover { background: var(--paper); }
+  .cl-row.selected { background: color-mix(in srgb, var(--pine) 16%, transparent); }
+  .cl-row .cl-n { color: var(--ink-soft); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .cl-row .cl-txt {
+    font-family: var(--font-card);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .cl-row .cl-back { color: var(--ink-soft); }
+  .cl-chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  .cl-chip {
+    font-size: 10px; padding: 1px 5px; border-radius: 8px;
+    background: var(--pine); color: #fff; white-space: nowrap;
+  }
+  .cl-chip .pos { opacity: 0.65; margin-right: 3px; text-transform: uppercase; }
+  .cl-empty { padding: 18px; text-align: center; color: var(--ink-soft); font-size: 12.5px; }
+  .cl-row { user-select: none; -webkit-user-select: none; }
+  .cl-foot { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; justify-content: space-between; margin-top: 8px; }
+  button.linkish {
+    width: auto; padding: 0; background: none; border: none;
+    color: var(--danger); font-size: 12px; font-weight: 500; text-decoration: underline;
+  }
+  .print-tips { font-size: 11.5px; color: var(--ink-soft); line-height: 1.45; margin-top: 10px; }
+
+  @media (max-width: 620px) {
+    .cl-row { grid-template-columns: 24px 30px minmax(0, 1fr) minmax(0, 7em); }
+    .cl-row .cl-back { display: none; }
+  }
+
+  @media print {
+    header.app-head, .controls, .stats-bar, .notice, .page-label, .empty-state, .cardlist-wrap { display: none !important; }
+    .layout { display: block; }
+    .preview-wrap { padding: 0; }
+    html, body { background: #fff; min-height: 0; }
+    .page {
+      box-shadow: none; max-width: none; margin: 0;
+      width: var(--print-w); height: var(--print-h);
+      break-after: page; page-break-after: always;
+      overflow: hidden;
+    }
+    .page:last-child { break-after: auto; page-break-after: auto; }
+    .card-cell { color: #000; padding: var(--print-pad, 2.5mm); }
+    .card-content { font-size: var(--print-size, 11pt); }
+    .corner-label { font-size: var(--print-corner, 6pt); color: #777; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-head">
+  <h1>Print &amp; Cut Flashcards</h1>
+  <p>Turn an Anki export into a printable, cuttable sheet — fronts and backs aligned for double-sided printing, with sorting labels in the card corners.</p>
+</header>
+
+<div class="layout">
+  <section class="controls">
+
+    <div class="step">1 · Card data</div>
+
+    <div class="field">
+      <textarea id="cardData" aria-label="Pasted card data" placeholder="Front&#9;Back&#10;Front&#9;Back"></textarea>
+      <div class="hint">
+        In Anki: <strong>Browse</strong> → select notes → <strong>Notes → Export Notes</strong> → <strong>Notes in Plain Text</strong>. Paste the whole file here, header lines and all.
+      </div>
+    </div>
+
+    <div class="field row">
+      <div>
+        <label class="sublabel" for="delim">Delimiter</label>
+        <select id="delim">
+          <option value="tab" selected>Tab</option>
+          <option value=",">Comma</option>
+          <option value=";">Semicolon</option>
+          <option value="|">Pipe</option>
+          <option value=":">Colon</option>
+          <option value=" ">Space</option>
+        </select>
+      </div>
+      <div>
+        <label class="sublabel" for="frontCol">Front column</label>
+        <select id="frontCol"></select>
+      </div>
+      <div>
+        <label class="sublabel" for="backCol">Back column</label>
+        <select id="backCol"></select>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:-8px;margin-bottom:15px;" id="colHint">Anki exports often begin with <code>#notetype</code> / <code>#deck</code> columns — those are detected and skipped automatically.</div>
+
+    <div class="step">2 · Layout</div>
+
+    <div class="field row">
+      <div>
+        <label class="sublabel" for="paper">Paper</label>
+        <select id="paper">
+          <option value="a4" selected>A4</option>
+          <option value="letter">US Letter</option>
+        </select>
+      </div>
+      <div>
+        <label class="sublabel" for="cols">Columns</label>
+        <input type="number" id="cols" min="1" max="8" value="2">
+      </div>
+      <div>
+        <label class="sublabel" for="rowsIn">Rows</label>
+        <input type="number" id="rowsIn" min="1" max="10" value="4">
+      </div>
+    </div>
+
+    <div class="field row">
+      <div>
+        <label class="sublabel" for="marginMm">Page margin (mm)</label>
+        <input type="number" id="marginMm" min="0" max="30" step="1" value="10">
+      </div>
+      <div>
+        <label class="sublabel" for="guides">Cut guides</label>
+        <select id="guides">
+          <option value="dashed" selected>Dashed</option>
+          <option value="hairline">Hairline</option>
+          <option value="none">None</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="step">3 · Text</div>
+
+    <div class="field row">
+      <div>
+        <label class="sublabel" for="frontSize">Front size (pt)</label>
+        <input type="number" id="frontSize" min="4" max="96" step="0.5" value="14">
+      </div>
+      <div>
+        <label class="sublabel" for="backSize">Back size (pt)</label>
+        <input type="number" id="backSize" min="4" max="96" step="0.5" value="11">
+      </div>
+      <div>
+        <label class="sublabel" for="lineHeight">Line spacing</label>
+        <input type="number" id="lineHeight" min="1" max="3" step="0.05" value="1.6">
+      </div>
+    </div>
+    <div class="hint" style="margin-top:-8px;">Sizes are true print points. Tibetan and other stacked scripts usually want a larger size <em>and</em> looser line spacing than Latin text.</div>
+
+    <div class="field" style="margin-top:12px;">
+      <label class="sublabel" for="cardFont">Card font (optional)</label>
+      <input type="text" id="cardFont" placeholder="e.g. Monlam Uni Ouchan2" autocomplete="off">
+      <div class="hint">Any font installed on this computer, by name. Leave blank for the built-in Noto stack (Tibetan, Chinese, Hebrew, Devanagari, Latin).</div>
+    </div>
+
+    <label class="check" style="margin-top:12px;">
+      <input type="checkbox" id="autoShrink" checked>
+      <span>Shrink oversized text to fit its card<br><span class="hint" style="margin:0;">Long entries step down in size instead of being silently clipped.</span></span>
+    </label>
+
+    <div class="step">4 · Double-siding</div>
+
+    <div class="field">
+      <div class="radio-group">
+        <label>
+          <input type="radio" name="mirror" value="lr" checked>
+          <span><span class="opt-label">Flip on long edge</span>
+          <span class="opt-desc">Standard auto-duplex, or flipping the stack like a book page. Also the right choice for gluing two printed sheets back to back.</span></span>
+        </label>
+        <label>
+          <input type="radio" name="mirror" value="tb">
+          <span><span class="opt-label">Flip on short edge</span>
+          <span class="opt-desc">Duplex set to flip like a calendar page.</span></span>
+        </label>
+        <label>
+          <input type="radio" name="mirror" value="none">
+          <span><span class="opt-label">No mirroring</span>
+          <span class="opt-desc">Only if you cut the sheets into loose cards first and pair them up by hand afterwards.</span></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="sublabel" for="pageOrder">Page order</label>
+      <select id="pageOrder">
+        <option value="interleaved" selected>Front, back, front, back…</option>
+        <option value="grouped">All fronts, then all backs</option>
+      </select>
+      <div class="hint">Use grouped order for a single-sided printer: print the front half, reload the stack, print the back half.</div>
+    </div>
+
+    <div class="step">5 · Corner labels</div>
+
+    <div class="field">
+      <div class="corner-grid">
+        <input type="text" id="cornerTL" placeholder="Top-left" aria-label="Top-left corner label" autocomplete="off">
+        <input type="text" id="cornerTR" placeholder="Top-right" aria-label="Top-right corner label" autocomplete="off">
+        <input type="text" id="cornerBL" placeholder="Bottom-left" aria-label="Bottom-left corner label" autocomplete="off">
+        <input type="text" id="cornerBR" placeholder="Bottom-right" aria-label="Bottom-right corner label" autocomplete="off">
+      </div>
+      <div class="hint">Small text in each card's corners, applied to every card — deck or series names, so cut cards can be re-sorted. Tokens: <code>{n}</code> running number, <code>{total}</code> deck size, <code>{col:3}</code> the text of column 3 (handy if a field already holds part of speech). For labels on individual cards, use the per-card panel beside the preview.</div>
+    </div>
+
+    <div class="field row">
+      <div>
+        <label class="sublabel" for="cornerOn">Print labels on</label>
+        <select id="cornerOn">
+          <option value="back" selected>Backs only</option>
+          <option value="both">Both sides</option>
+          <option value="front">Fronts only</option>
+        </select>
+      </div>
+      <div>
+        <label class="sublabel" for="cornerSize">Label size (pt)</label>
+        <input type="number" id="cornerSize" min="3" max="14" step="0.5" value="6">
+      </div>
+    </div>
+
+    <div class="btn-stack">
+      <button class="primary" id="buildBtn">Build preview</button>
+      <button class="secondary" id="printBtn">Print</button>
+      <div class="print-tips">In the print dialog: scale <strong>100%</strong> (not “fit to page”), margins <strong>Default</strong>, and headers &amp; footers <strong>off</strong> — otherwise the grid shifts and the backs stop lining up.</div>
+    </div>
+  </section>
+
+  <section class="preview-wrap">
+    <div class="stats-bar" id="statsBar">Paste your cards, then build a preview.</div>
+    <div id="noticeArea"></div>
+
+    <details class="cardlist-wrap" id="cardListWrap">
+      <summary>
+        <span>Per-card corner labels</span>
+        <span class="selcount" id="selCount">no cards yet</span>
+      </summary>
+      <div class="cardlist-body">
+
+        <div class="sel-toolbar">
+          <input type="text" id="clSearch" placeholder="Filter by front or back text…" aria-label="Filter cards" autocomplete="off">
+          <button type="button" id="selAll">Select all</button>
+          <button type="button" id="selFiltered">Select filtered</button>
+          <button type="button" id="selInvert">Invert</button>
+          <button type="button" id="selNone">Clear selection</button>
+        </div>
+
+        <div class="apply-bar">
+          <select id="applyCorner" aria-label="Corner to apply label to">
+            <option value="tl">Top-left</option>
+            <option value="tr" selected>Top-right</option>
+            <option value="bl">Bottom-left</option>
+            <option value="br">Bottom-right</option>
+          </select>
+          <input type="text" id="applyText" placeholder="Label for selected cards — e.g. v.t." aria-label="Label text" autocomplete="off">
+          <button type="button" class="apply" id="applyBtn">Apply to selected</button>
+          <button type="button" class="clear" id="clearBtn">Remove from selected</button>
+        </div>
+        <div class="hint" style="margin:-4px 0 10px;">
+          A per-card label replaces the deck-wide label in that corner, for those cards only. Removing it lets the deck-wide one show through again. Tokens work here too: <code>{n}</code>, <code>{total}</code>, <code>{col:3}</code>.
+        </div>
+
+        <div class="cardlist" id="cardList"></div>
+        <div class="cl-foot">
+          <span class="hint" style="margin:0;">Click a row to select; shift-click to select a range. Labels are saved in this browser and follow each card even if the deck is re-pasted or reordered.</span>
+          <button type="button" class="linkish" id="clearAllLabels">Remove all per-card labels…</button>
+        </div>
+      </div>
+    </details>
+
+    <div class="print-area" id="printArea"></div>
+  </section>
+</div>
+
+<style id="pageSizeStyle">@page { size: A4; margin: 10mm; }</style>
+
+<script>
+(function(){
+  "use strict";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var cardDataEl = $('cardData'), delimEl = $('delim');
+  var frontColEl = $('frontCol'), backColEl = $('backCol'), colHintEl = $('colHint');
+  var paperEl = $('paper'), colsEl = $('cols'), rowsEl = $('rowsIn');
+  var marginEl = $('marginMm'), guidesEl = $('guides');
+  var frontSizeEl = $('frontSize'), backSizeEl = $('backSize'), lineHeightEl = $('lineHeight');
+  var cardFontEl = $('cardFont'), autoShrinkEl = $('autoShrink');
+  var pageOrderEl = $('pageOrder'), cornerOnEl = $('cornerOn'), cornerSizeEl = $('cornerSize');
+  var buildBtn = $('buildBtn'), printBtn = $('printBtn');
+  var printArea = $('printArea'), statsBar = $('statsBar'), noticeArea = $('noticeArea');
+  var pageSizeStyle = $('pageSizeStyle');
+  var cornerEls = { tl: $('cornerTL'), tr: $('cornerTR'), bl: $('cornerBL'), br: $('cornerBR') };
+
+  var cardListWrap = $('cardListWrap'), cardListEl = $('cardList'), selCountEl = $('selCount');
+  var clSearchEl = $('clSearch');
+  var applyCornerEl = $('applyCorner'), applyTextEl = $('applyText');
+
+  var CORNERS = ['tl','tr','bl','br'];
+  var CORNER_NAMES = { tl: 'TL', tr: 'TR', bl: 'BL', br: 'BR' };
+
+  // Per-card labels, keyed by card content so they survive a re-parse.
+  var overrides = {};
+  // Currently selected card keys.
+  var selection = new Set();
+  var currentCards = [];
+  var lastClickedIndex = null;
+
+  var MM_PX = 96 / 25.4;
+  var PT_PX = 96 / 72;
+  var PAPER = { a4: { w: 210, h: 297 }, letter: { w: 215.9, h: 279.4 } };
+  var lastBuild = null;
+
+  /* ---------- settings persistence (per-viewer convenience only) ---------- */
+  var PERSIST = ['delim','paper','cols','rowsIn','marginMm','guides','frontSize','backSize',
+                 'lineHeight','cardFont','pageOrder','cornerOn','cornerSize',
+                 'cornerTL','cornerTR','cornerBL','cornerBR'];
+
+  function saveSettings() {
+    try {
+      var s = {};
+      PERSIST.forEach(function(id){ var el = $(id); if (el) s[id] = el.value; });
+      s.autoShrink = autoShrinkEl.checked;
+      var m = document.querySelector('input[name="mirror"]:checked');
+      s.mirror = m ? m.value : 'lr';
+      localStorage.setItem('pcf_settings_v2', JSON.stringify(s));
+    } catch (e) { /* storage unavailable — settings just won't persist */ }
+  }
+
+  function loadSettings() {
+    try {
+      var raw = localStorage.getItem('pcf_settings_v2');
+      if (!raw) return;
+      var s = JSON.parse(raw);
+      PERSIST.forEach(function(id){
+        var el = $(id);
+        if (el && typeof s[id] === 'string') el.value = s[id];
+      });
+      if (typeof s.autoShrink === 'boolean') autoShrinkEl.checked = s.autoShrink;
+      if (s.mirror) {
+        var r = document.querySelector('input[name="mirror"][value="' + s.mirror + '"]');
+        if (r) r.checked = true;
+      }
+    } catch (e) { /* ignore malformed or unavailable storage */ }
+  }
+
+  // Returns false when the labels could not be stored, so the caller can say so.
+  function saveOverrides() {
+    try {
+      localStorage.setItem('pcf_overrides_v1', JSON.stringify(overrides));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function loadOverrides() {
+    try {
+      var raw = localStorage.getItem('pcf_overrides_v1');
+      if (raw) overrides = JSON.parse(raw) || {};
+    } catch (e) { overrides = {}; }
+  }
+
+  /* ---------- parsing ---------- */
+
+  function currentDelim() {
+    return delimEl.value === 'tab' ? '\t' : delimEl.value;
+  }
+
+  // Splits delimited text, honouring RFC4180-style double quotes, which Anki
+  // uses to wrap fields containing the separator or a line break.
+  function splitRows(text, delim) {
+    var rows = [], field = '', row = [], inQuotes = false, i = 0;
+    while (i < text.length) {
+      var ch = text[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+          inQuotes = false; i++; continue;
+        }
+        field += ch; i++; continue;
+      }
+      if (ch === '"' && field === '') { inQuotes = true; i++; continue; }
+      if (ch === delim) { row.push(field); field = ''; i++; continue; }
+      if (ch === '\r') { i++; continue; }
+      if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+      field += ch; i++;
+    }
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  // Anki starts its exports with directives such as "#separator:tab" or
+  // "#deck column:2". Only those, and only at the top of the file, count as
+  // header: a card whose front happens to start with "#" is still a card.
+  var HEADER_RE = /^#\s*(separator|html|tags|columns|notetype|deck|notetype column|deck column|tags column|guid column)\s*:(.*)$/i;
+  var SEPARATOR_NAMES = { tab: '\t', comma: ',', semicolon: ';', pipe: '|', space: ' ', colon: ':' };
+
+  function readHeader(text) {
+    var lines = text.split(/\r?\n/);
+    var directives = {}, count = 0;
+    for (var i = 0; i < lines.length; i++) {
+      var m = HEADER_RE.exec(lines[i].trim());
+      if (!m) break;
+      directives[m[1].toLowerCase().replace(/\s+/g, ' ')] = m[2].trim();
+      count++;
+    }
+    var reserved = {};
+    ['notetype', 'deck', 'tags', 'guid'].forEach(function(kind){
+      var v = parseInt(directives[kind + ' column'], 10);
+      if (v > 0) reserved[v] = kind;
+    });
+    var sep = directives.separator;
+    if (sep !== undefined) {
+      sep = SEPARATOR_NAMES[sep.toLowerCase()] !== undefined ? SEPARATOR_NAMES[sep.toLowerCase()] : sep.charAt(0);
+    }
+    return {
+      reserved: reserved,
+      headerLines: count,
+      separator: sep,
+      html: directives.html === undefined ? true : !/^false$/i.test(directives.html),
+      body: lines.slice(count).join('\n')
+    };
+  }
+
+  // A header naming its separator beats whatever the dropdown says.
+  function applyHeaderSeparator(head) {
+    if (!head.separator) return;
+    var val = head.separator === '\t' ? 'tab' : head.separator;
+    var match = Array.prototype.some.call(delimEl.options, function(o){ return o.value === val; });
+    if (match && delimEl.value !== val) delimEl.value = val;
+  }
+
+  function analyse() {
+    var head = readHeader(cardDataEl.value);
+    applyHeaderSeparator(head);
+    var rows = splitRows(head.body, currentDelim());
+    var dataRows = rows.filter(function(r){
+      return r.length && r.join('').trim() !== '';
+    });
+    var maxCols = 0;
+    dataRows.forEach(function(r){ if (r.length > maxCols) maxCols = r.length; });
+    return { rows: dataRows, maxCols: maxCols, reserved: head.reserved,
+             headerLines: head.headerLines, html: head.html, separator: head.separator };
+  }
+
+  function refreshColumns(force) {
+    var info = analyse();
+    var maxCols = Math.max(info.maxCols, 2);
+    var prevF = frontColEl.value, prevB = backColEl.value;
+
+    // A restored selection from a wider paste must not survive onto a narrower one.
+    var stale = parseInt(prevF, 10) > maxCols || parseInt(prevB, 10) > maxCols;
+
+    if (frontColEl.options.length !== maxCols || force || stale) {
+      frontColEl.innerHTML = '';
+      backColEl.innerHTML = '';
+      for (var c = 1; c <= maxCols; c++) {
+        var name = info.reserved[c] ? ' (' + info.reserved[c] + ')' : '';
+        frontColEl.appendChild(new Option(c + name, String(c)));
+        backColEl.appendChild(new Option(c + name, String(c)));
+      }
+      // Default to the first two columns Anki has not claimed for metadata.
+      var free = [];
+      for (var k = 1; k <= maxCols; k++) if (!info.reserved[k]) free.push(k);
+      var defF = free[0] || 1, defB = free[1] || Math.min(2, maxCols);
+      frontColEl.value = String(defF);
+      backColEl.value = String(defB);
+      if (!force && !stale && prevF && parseInt(prevF, 10) <= maxCols) frontColEl.value = prevF;
+      if (!force && !stale && prevB && parseInt(prevB, 10) <= maxCols) backColEl.value = prevB;
+    }
+
+    var res = Object.keys(info.reserved);
+    var parts = [];
+    if (info.separator) parts.push('Delimiter set from the file’s header.');
+    if (res.length) parts.push('Metadata columns ' + res.map(function(n){ return info.reserved[n] + ' (' + n + ')'; }).join(', ') + ' are skipped by default.');
+    if (!info.html) parts.push('Exported without HTML, so text is shown exactly as written.');
+    colHintEl.textContent = parts.length ? parts.join(' ')
+      : 'Header lines from an Anki export (delimiter, notetype and deck columns) are read automatically.';
+    return info;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Formatting that can come out of an Anki field and still print sensibly.
+  // Everything else is unwrapped to its text; script-like elements are dropped.
+  var ALLOWED_TAGS = { B:1, STRONG:1, I:1, EM:1, U:1, S:1, STRIKE:1, SUB:1, SUP:1, SMALL:1, BIG:1,
+    SPAN:1, FONT:1, BR:1, RUBY:1, RT:1, RP:1, RB:1, MARK:1, CODE:1, P:1, UL:1, OL:1, LI:1,
+    TABLE:1, THEAD:1, TBODY:1, TR:1, TD:1, TH:1, HR:1, BLOCKQUOTE:1 };
+  var DROPPED_TAGS = { SCRIPT:1, STYLE:1, IFRAME:1, OBJECT:1, EMBED:1, LINK:1, META:1, AUDIO:1,
+    VIDEO:1, SOURCE:1, TEMPLATE:1, SVG:1, MATH:1, FORM:1, INPUT:1, BUTTON:1, TEXTAREA:1, SELECT:1, NOSCRIPT:1, TITLE:1 };
+  var ALLOWED_ATTRS = { style:1, lang:1, dir:1, color:1, face:1, size:1, colspan:1, rowspan:1 };
+
+  // DOMParser builds an inert document: nothing in it loads or executes.
+  var parser = new DOMParser();
+
+  function sanitize(html) {
+    var doc = parser.parseFromString('<body>' + html + '</body>', 'text/html');
+    var hadMedia = false;
+    (function walk(node){
+      Array.prototype.slice.call(node.childNodes).forEach(function(child){
+        if (child.nodeType === 8) { child.remove(); return; }           // comment
+        if (child.nodeType !== 1) return;                                // text
+        var tag = child.tagName;
+        if (tag === 'IMG') { hadMedia = true; child.remove(); return; }
+        if (tag === 'AUDIO' || tag === 'VIDEO') hadMedia = true;
+        if (DROPPED_TAGS[tag]) { child.remove(); return; }
+        if (tag === 'DIV') {
+          // Anki's editor wraps lines in <div>; keep them as line breaks.
+          walk(child);
+          if (child.previousSibling) child.before(doc.createElement('br'));
+          child.replaceWith.apply(child, Array.prototype.slice.call(child.childNodes));
+          return;
+        }
+        if (!ALLOWED_TAGS[tag]) {
+          walk(child);
+          child.replaceWith.apply(child, Array.prototype.slice.call(child.childNodes));
+          return;
+        }
+        Array.prototype.slice.call(child.attributes).forEach(function(a){
+          var name = a.name.toLowerCase();
+          if (!ALLOWED_ATTRS[name] || /url\s*\(|expression\s*\(|javascript:/i.test(a.value)) {
+            child.removeAttribute(a.name);
+          }
+        });
+        walk(child);
+      });
+    })(doc.body);
+    return { html: doc.body.innerHTML, hadMedia: hadMedia };
+  }
+
+  function plain(html) {
+    if (!html) return '';
+    return (parser.parseFromString('<body>' + html + '</body>', 'text/html').body.textContent || '').trim();
+  }
+
+  function cleanField(text, isHtml) {
+    if (!text) return { html: '', hadMedia: false };
+    var hadMedia = false;
+    var out = text.replace(/\[sound:[^\]]*\]/gi, function(){ hadMedia = true; return ''; });
+    // An export made with "include HTML" off is plain text: show it literally.
+    if (isHtml === false) out = escapeHtml(out);
+    // A quoted multi-line field arrives with real newlines, which HTML would
+    // otherwise collapse into spaces. Done before cloze so a cloze can span lines.
+    out = out.replace(/\r?\n/g, '<br>');
+    // Cloze deletions: show the answer text rather than the raw braces.
+    out = out.replace(/\{\{c\d+::([\s\S]*?)(?:::[^}]*)?\}\}/g, '$1');
+    var s = sanitize(out);
+    out = s.html.replace(/^(?:\s|<br>)+|(?:\s|<br>)+$/g, '');
+    return { html: out, hadMedia: hadMedia || s.hadMedia };
+  }
+
+  function parseCards() {
+    var info = analyse();
+    var fi = parseInt(frontColEl.value, 10) - 1;
+    var bi = parseInt(backColEl.value, 10) - 1;
+    if (isNaN(fi) || fi < 0) fi = 0;
+    if (isNaN(bi) || bi < 0) bi = 1;
+
+    var cards = [], skipped = 0, mediaDropped = 0, oneSided = 0;
+    var seen = {};
+    info.rows.forEach(function(r){
+      var rawF = r[fi] !== undefined ? r[fi] : '';
+      var rawB = r[bi] !== undefined ? r[bi] : '';
+      var f = cleanField(rawF, info.html), b = cleanField(rawB, info.html);
+      if (!f.html && !b.html) { skipped++; return; }
+      if (!f.html || !b.html) oneSided++;
+      if (f.hadMedia || b.hadMedia) mediaDropped++;
+      // Key on content, not position, so per-card labels stick when the deck
+      // is re-pasted or reordered. Duplicates get a disambiguating suffix.
+      var base = f.html + '\u0000' + b.html;
+      seen[base] = (seen[base] || 0) + 1;
+      var key = seen[base] > 1 ? base + '\u0000#' + seen[base] : base;
+      cards.push({ front: f.html, back: b.html, row: r, key: key,
+                   frontText: plain(f.html), backText: plain(b.html) });
+    });
+    cards.forEach(function(c, i){ c.n = i + 1; });
+    return { cards: cards, skipped: skipped, mediaDropped: mediaDropped,
+             oneSided: oneSided, headerLines: info.headerLines };
+  }
+
+  /* ---------- geometry ---------- */
+
+  function geometry() {
+    var paper = PAPER[paperEl.value] || PAPER.a4;
+    var margin = Math.min(30, Math.max(0, parseFloat(marginEl.value)));
+    if (isNaN(margin)) margin = 10;
+    var cols = Math.min(8, Math.max(1, parseInt(colsEl.value, 10) || 1));
+    var rows = Math.min(10, Math.max(1, parseInt(rowsEl.value, 10) || 1));
+    var contentW = paper.w - margin * 2;
+    var contentH = paper.h - margin * 2;
+    return {
+      paperKey: paperEl.value, margin: margin, cols: cols, rows: rows,
+      contentW: contentW, contentH: contentH,
+      cardW: contentW / cols, cardH: contentH / rows
+    };
+  }
+
+  /* ---------- mirroring ---------- */
+
+  function mirror(chunk, cols, rows, mode) {
+    if (mode === 'none') return chunk.slice();
+    var out = new Array(chunk.length).fill(null);
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var src = r * cols + c;
+        var dst = mode === 'lr'
+          ? r * cols + (cols - 1 - c)
+          : (rows - 1 - r) * cols + c;
+        out[dst] = chunk[src];
+      }
+    }
+    return out;
+  }
+
+  /* ---------- rendering ---------- */
+
+  function expandTokens(tpl, card, total) {
+    return tpl
+      .replace(/\{n\}/g, String(card.n).padStart(String(total).length, '0'))
+      .replace(/\{total\}/g, String(total))
+      .replace(/\{col:(\d+)\}/g, function(_, d){
+        // Fields are HTML; a corner label is plain text, so strip the tags.
+        var v = card.row && card.row[parseInt(d, 10) - 1];
+        return v ? plain(String(v).replace(/\[sound:[^\]]*\]/gi, '')) : '';
+      });
+  }
+
+  // A per-card label wins over the deck-wide one for that corner.
+  function labelFor(card, pos, opts) {
+    var ov = overrides[card.key];
+    var tpl = (ov && ov[pos]) ? ov[pos] : opts.corners[pos];
+    if (!tpl) return '';
+    return expandTokens(tpl, card, opts.total);
+  }
+
+  function buildPage(chunk, g, side, opts) {
+    var page = document.createElement('div');
+    page.className = 'page guides-' + opts.guides;
+    page.style.gridTemplateColumns = 'repeat(' + g.cols + ', 1fr)';
+    page.style.gridTemplateRows = 'repeat(' + g.rows + ', 1fr)';
+    page.style.aspectRatio = g.contentW + ' / ' + g.contentH;
+    page.style.setProperty('--print-w', g.contentW + 'mm');
+    // A hair under the printable height keeps browsers from spilling a blank page.
+    page.style.setProperty('--print-h', (g.contentH - 0.2) + 'mm');
+
+    var showCorners = opts.cornerOn === 'both' || opts.cornerOn === side;
+    var sizePt = side === 'front' ? opts.frontPt : opts.backPt;
+
+    chunk.forEach(function(card){
+      var cell = document.createElement('div');
+      cell.className = 'card-cell';
+      if (!card) { cell.classList.add('blank'); page.appendChild(cell); return; }
+
+      var content = document.createElement('div');
+      content.className = 'card-content';
+      content.dataset.pt = String(sizePt);
+      content.style.setProperty('--lh', opts.lineHeight);
+      if (opts.cardFont) content.style.setProperty('--card-font', opts.cardFont);
+      content.innerHTML = side === 'front' ? card.front : card.back;
+      cell.appendChild(content);
+
+      if (showCorners) {
+        CORNERS.forEach(function(pos){
+          var text = labelFor(card, pos, opts);
+          if (!text) return;
+          var span = document.createElement('span');
+          span.className = 'corner-label ' + pos;
+          span.textContent = text;
+          cell.appendChild(span);
+        });
+      }
+      page.appendChild(cell);
+    });
+    return page;
+  }
+
+  // The preview page is drawn smaller than real paper, so point sizes are
+  // converted through the measured ratio instead of a guessed constant.
+  function applySizes() {
+    if (!lastBuild) return;
+    var g = lastBuild.g, opts = lastBuild.opts;
+    var firstPage = printArea.querySelector('.page');
+    if (!firstPage) return;
+
+    var shownW = firstPage.getBoundingClientRect().width;
+    var trueW = g.contentW * MM_PX;
+    var scale = shownW > 0 ? shownW / trueW : 1;
+
+    printArea.querySelectorAll('.page').forEach(function(p){
+      p.style.setProperty('--cell-pad', (2.5 * MM_PX * scale).toFixed(2) + 'px');
+      p.style.setProperty('--corner-size', (opts.cornerPt * PT_PX * scale).toFixed(2) + 'px');
+      p.style.setProperty('--print-corner', opts.cornerPt + 'pt');
+    });
+
+    printArea.querySelectorAll('.card-content').forEach(function(el){
+      var pt = parseFloat(el.dataset.pt);
+      el.style.setProperty('--size', (pt * PT_PX * scale).toFixed(2) + 'px');
+      el.style.setProperty('--print-size', pt + 'pt');
+    });
+
+    if (opts.autoShrink) shrinkToFit(scale);
+  }
+
+  // Steps a card's text down until it fits, and reports how many needed it.
+  function shrinkToFit(scale) {
+    var shrunk = 0, clipped = 0;
+    printArea.querySelectorAll('.card-cell').forEach(function(cell){
+      var content = cell.querySelector('.card-content');
+      if (!content) return;
+      var basePt = parseFloat(content.dataset.pt);
+      var pt = basePt;
+      var minPt = Math.max(4, basePt * 0.45);
+      var guard = 0;
+      while (guard++ < 40) {
+        var cRect = content.getBoundingClientRect();
+        var availH = cell.clientHeight - 2 * parseFloat(getComputedStyle(cell).paddingTop || 0);
+        var availW = cell.clientWidth - 2 * parseFloat(getComputedStyle(cell).paddingLeft || 0);
+        if (cRect.height <= availH + 0.5 && cRect.width <= availW + 0.5) break;
+        if (pt <= minPt) { clipped++; break; }
+        pt = Math.max(minPt, pt * 0.94);
+        content.style.setProperty('--size', (pt * PT_PX * scale).toFixed(2) + 'px');
+        content.style.setProperty('--print-size', pt.toFixed(2) + 'pt');
+      }
+      if (pt < basePt - 0.01) shrunk++;
+    });
+    // This runs several times per build (fonts loading, resize, print), so it
+    // owns one notice slot that it replaces rather than appending a new one.
+    var old = noticeArea.querySelector('[data-slot="shrink"]');
+    if (old) old.remove();
+    if (shrunk) {
+      addNotice(shrunk + ' card' + (shrunk === 1 ? ' was' : 's were') + ' shrunk to fit' +
+        (clipped ? ', and ' + clipped + ' may still be clipped — try fewer cards per sheet' : '') + '.',
+        clipped > 0, 'shrink');
+    }
+  }
+
+  function addNotice(text, bad, slot) {
+    var d = document.createElement('div');
+    d.className = 'notice' + (bad ? ' bad' : '');
+    if (slot) d.dataset.slot = slot;
+    d.textContent = text;
+    noticeArea.appendChild(d);
+  }
+
+  /* ---------- card list & selection ---------- */
+
+  function visibleCards() {
+    var q = clSearchEl.value.trim().toLowerCase();
+    if (!q) return currentCards;
+    return currentCards.filter(function(c){
+      return c.frontText.toLowerCase().indexOf(q) !== -1 ||
+             c.backText.toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function updateSelCount() {
+    var n = selection.size;
+    var total = currentCards.length;
+    var labelled = currentCards.filter(function(c){
+      var ov = overrides[c.key];
+      return ov && CORNERS.some(function(p){ return ov[p]; });
+    }).length;
+    if (!total) { selCountEl.textContent = 'no cards yet'; return; }
+    selCountEl.textContent = n + ' of ' + total + ' selected' +
+      (labelled ? ' · ' + labelled + ' labelled' : '');
+  }
+
+  function renderCardList() {
+    cardListEl.innerHTML = '';
+    var list = visibleCards();
+
+    if (!list.length) {
+      var e = document.createElement('div');
+      e.className = 'cl-empty';
+      e.textContent = currentCards.length ? 'No cards match that filter.' : 'Build a preview to list cards here.';
+      cardListEl.appendChild(e);
+      updateSelCount();
+      return;
+    }
+
+    var frag = document.createDocumentFragment();
+    list.forEach(function(card, visIdx){
+      var row = document.createElement('div');
+      row.className = 'cl-row' + (selection.has(card.key) ? ' selected' : '');
+      row.dataset.key = card.key;
+      row.dataset.visIdx = String(visIdx);
+
+      var box = document.createElement('input');
+      box.type = 'checkbox';
+      box.checked = selection.has(card.key);
+      box.tabIndex = -1;
+      box.setAttribute('aria-label', 'Select card ' + card.n);
+      row.appendChild(box);
+
+      var num = document.createElement('span');
+      num.className = 'cl-n';
+      num.textContent = card.n;
+      row.appendChild(num);
+
+      var f = document.createElement('span');
+      f.className = 'cl-txt';
+      f.textContent = card.frontText;
+      row.appendChild(f);
+
+      var b = document.createElement('span');
+      b.className = 'cl-txt cl-back';
+      b.textContent = card.backText;
+      row.appendChild(b);
+
+      var chips = document.createElement('span');
+      chips.className = 'cl-chips';
+      var ov = overrides[card.key];
+      if (ov) {
+        CORNERS.forEach(function(pos){
+          if (!ov[pos]) return;
+          var chip = document.createElement('span');
+          chip.className = 'cl-chip';
+          var tag = document.createElement('span');
+          tag.className = 'pos';
+          tag.textContent = CORNER_NAMES[pos];
+          chip.appendChild(tag);
+          chip.appendChild(document.createTextNode(ov[pos]));
+          chips.appendChild(chip);
+        });
+      }
+      row.appendChild(chips);
+      frag.appendChild(row);
+    });
+    cardListEl.appendChild(frag);
+    updateSelCount();
+  }
+
+  function toggleRange(fromVis, toVis, on) {
+    var list = visibleCards();
+    var a = Math.min(fromVis, toVis), z = Math.max(fromVis, toVis);
+    for (var i = a; i <= z; i++) {
+      if (!list[i]) continue;
+      if (on) selection.add(list[i].key);
+      else selection.delete(list[i].key);
+    }
+  }
+
+  cardListEl.addEventListener('click', function(ev){
+    var row = ev.target.closest('.cl-row');
+    if (!row) return;
+    var key = row.dataset.key;
+    var visIdx = parseInt(row.dataset.visIdx, 10);
+    var isSelected = selection.has(key);
+
+    if (ev.shiftKey && lastClickedIndex !== null) {
+      toggleRange(lastClickedIndex, visIdx, !isSelected);
+    } else if (isSelected) {
+      selection.delete(key);
+    } else {
+      selection.add(key);
+    }
+    lastClickedIndex = visIdx;
+    renderCardList();
+  });
+
+  clSearchEl.addEventListener('input', function(){ lastClickedIndex = null; renderCardList(); });
+
+  $('selAll').addEventListener('click', function(){
+    currentCards.forEach(function(c){ selection.add(c.key); });
+    renderCardList();
+  });
+  $('selFiltered').addEventListener('click', function(){
+    visibleCards().forEach(function(c){ selection.add(c.key); });
+    renderCardList();
+  });
+  $('selNone').addEventListener('click', function(){
+    selection.clear(); lastClickedIndex = null; renderCardList();
+  });
+  $('selInvert').addEventListener('click', function(){
+    visibleCards().forEach(function(c){
+      if (selection.has(c.key)) selection.delete(c.key);
+      else selection.add(c.key);
+    });
+    renderCardList();
+  });
+
+  function applyToSelection(text) {
+    if (!selection.size) {
+      addNotice('Select some cards first — nothing was changed.', true);
+      return false;
+    }
+    var pos = applyCornerEl.value;
+    selection.forEach(function(key){
+      if (text) {
+        if (!overrides[key]) overrides[key] = {};
+        overrides[key][pos] = text;
+      } else if (overrides[key]) {
+        delete overrides[key][pos];
+        if (!CORNERS.some(function(p){ return overrides[key][p]; })) delete overrides[key];
+      }
+    });
+    overridesSaved = saveOverrides();
+    return true;
+  }
+
+  var overridesSaved = true;
+
+  function afterLabelChange() {
+    build(true);
+    if (!overridesSaved) {
+      addNotice('Per-card labels are applied to this preview but could not be saved in this browser (storage is full or blocked), so they will be gone after a reload. Print before closing the page.', true);
+    }
+  }
+
+  $('applyBtn').addEventListener('click', function(){
+    var text = applyTextEl.value.trim();
+    if (!text) { addNotice('Type a label to apply, or use “Remove from selected”.', true); return; }
+    if (applyToSelection(text)) afterLabelChange();
+  });
+
+  $('clearBtn').addEventListener('click', function(){
+    if (applyToSelection('')) afterLabelChange();
+  });
+
+  $('clearAllLabels').addEventListener('click', function(){
+    var n = Object.keys(overrides).length;
+    if (!n) { addNotice('There are no per-card labels to remove.', false); return; }
+    if (!window.confirm('Remove per-card labels from all ' + n + ' card(s) that have them, in every deck you have used here? Deck-wide labels are kept.')) return;
+    overrides = {};
+    overridesSaved = saveOverrides();
+    afterLabelChange();
+  });
+
+  /* ---------- build ---------- */
+
+  function build(keepPanelOpen) {
+    refreshColumns(false);
+    var parsed = parseCards();
+    var g = geometry();
+    var perPage = g.cols * g.rows;
+    var mirrorMode = (document.querySelector('input[name="mirror"]:checked') || {}).value || 'lr';
+
+    var opts = {
+      guides: guidesEl.value,
+      frontPt: parseFloat(frontSizeEl.value) || 14,
+      backPt: parseFloat(backSizeEl.value) || 11,
+      lineHeight: String(parseFloat(lineHeightEl.value) || 1.6),
+      cardFont: cardFontEl.value.trim()
+        ? '"' + cardFontEl.value.trim().replace(/"/g, '') + '", ' + getComputedStyle(document.documentElement).getPropertyValue('--font-card')
+        : '',
+      cornerOn: cornerOnEl.value,
+      cornerPt: parseFloat(cornerSizeEl.value) || 6,
+      autoShrink: autoShrinkEl.checked,
+      corners: {
+        tl: cornerEls.tl.value.trim(), tr: cornerEls.tr.value.trim(),
+        bl: cornerEls.bl.value.trim(), br: cornerEls.br.value.trim()
+      },
+      total: parsed.cards.length
+    };
+
+    pageSizeStyle.textContent = '@page { size: ' + (g.paperKey === 'a4' ? 'A4' : 'letter') +
+      '; margin: ' + g.margin + 'mm; }';
+
+    printArea.innerHTML = '';
+    noticeArea.innerHTML = '';
+    lastBuild = null;
+
+    // Drop selections for cards that no longer exist in the pasted data.
+    currentCards = parsed.cards;
+    var liveKeys = {};
+    currentCards.forEach(function(c){ liveKeys[c.key] = true; });
+    Array.from(selection).forEach(function(k){ if (!liveKeys[k]) selection.delete(k); });
+    if (keepPanelOpen) cardListWrap.open = true;
+    renderCardList();
+
+    if (!parsed.cards.length) {
+      statsBar.innerHTML = 'No cards yet.';
+      if (parsed.skipped) addNotice(parsed.skipped + ' row(s) had no text in the chosen columns — check the delimiter and column pickers.', true);
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'Nothing to preview yet.';
+      printArea.appendChild(empty);
+      saveSettings();
+      return;
+    }
+
+    var sheets = [];
+    for (var p = 0; p * perPage < parsed.cards.length; p++) {
+      var chunk = parsed.cards.slice(p * perPage, p * perPage + perPage);
+      while (chunk.length < perPage) chunk.push(null);
+      sheets.push(chunk);
+    }
+
+    function emit(chunk, side, sheetNo) {
+      var label = document.createElement('div');
+      label.className = 'page-label';
+      label.textContent = 'Sheet ' + sheetNo + ' — ' + (side === 'front' ? 'fronts' : 'backs');
+      printArea.appendChild(label);
+      printArea.appendChild(buildPage(chunk, g, side, opts));
+    }
+
+    if (pageOrderEl.value === 'grouped') {
+      sheets.forEach(function(ch, i){ emit(ch, 'front', i + 1); });
+      sheets.forEach(function(ch, i){ emit(mirror(ch, g.cols, g.rows, mirrorMode), 'back', i + 1); });
+    } else {
+      sheets.forEach(function(ch, i){
+        emit(ch, 'front', i + 1);
+        emit(mirror(ch, g.cols, g.rows, mirrorMode), 'back', i + 1);
+      });
+    }
+
+    lastBuild = { g: g, opts: opts };
+
+    statsBar.innerHTML =
+      '<strong>' + parsed.cards.length + '</strong> cards · ' +
+      '<strong>' + perPage + '</strong> per sheet · ' +
+      '<strong>' + sheets.length * 2 + '</strong> pages<br>' +
+      'Finished card size: <strong>' + g.cardW.toFixed(0) + ' × ' + g.cardH.toFixed(0) + ' mm</strong>' +
+      ' (' + (g.cardW / 25.4).toFixed(1) + ' × ' + (g.cardH / 25.4).toFixed(1) + ' in)';
+
+    if (parsed.skipped) addNotice(parsed.skipped + ' row(s) were empty in both chosen columns and skipped.', false);
+    if (parsed.oneSided) addNotice(parsed.oneSided + ' card(s) have text on only one side.', false);
+    if (parsed.mediaDropped) addNotice(parsed.mediaDropped + ' card(s) referenced audio or images, which cannot print — that content was removed.', false);
+    if (mirrorMode === 'none') addNotice('No mirroring: the backs will not line up if you duplex or glue whole sheets. Only use this if you cut first.', true);
+    if (g.margin < 5) addNotice('A margin under 5 mm is inside the unprintable edge on most home printers — edge cards may be cut off.', true);
+
+    var fit = function(){ applySizes(); };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ requestAnimationFrame(fit); });
+    else requestAnimationFrame(fit);
+    requestAnimationFrame(fit);
+
+    saveSettings();
+  }
+
+  /* ---------- events ---------- */
+
+  buildBtn.addEventListener('click', function(){ build(false); });
+  printBtn.addEventListener('click', function(){
+    // Rebuild so a setting changed since the last preview is not silently ignored.
+    build(false);
+    if (!printArea.querySelector('.page')) {
+      addNotice('There are no cards to print yet.', true);
+      return;
+    }
+    // Text fitting depends on the real fonts, so wait for them before printing.
+    var ready = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+    ready.then(function(){
+      requestAnimationFrame(function(){ applySizes(); window.print(); });
+    });
+  });
+
+  cardDataEl.addEventListener('input', function(){ refreshColumns(true); });
+  delimEl.addEventListener('change', function(){ refreshColumns(true); });
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(applySizes, 150);
+  });
+  window.addEventListener('beforeprint', applySizes);
+
+  loadSettings();
+  loadOverrides();
+  refreshColumns(true);
+  renderCardList();
+})();
+</script>
+
+</body>
+</html>
